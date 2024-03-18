@@ -1,0 +1,38 @@
+import requests
+import pandas as pd
+import streamlit as st
+import matplotlib.pyplot as plt
+import seaborn as sns
+import ipywidgets as widgets
+from IPython.display import display
+import plotly.express as px
+
+# URL van de JSON-API
+urll = 'https://opendata.rdw.nl/resource/m9d7-ebf2.csv?$limit=20000&$offset=0' # Gekentekende voertuigen
+df90 = pd.read_csv(urll)
+
+urlk = 'https://opendata.rdw.nl/resource/8ys7-d773.csv?$limit=20000&$offset=0' # Gekentekende voertuigen brandstof
+df100 = pd.read_csv(urlk)
+
+df90['brandstof_omschrijving'] = df100['brandstof_omschrijving'].values
+
+# Converteer de datumkolom naar datetime-formaat
+df90['datum_tenaamstelling'] = pd.to_datetime(df90['datum_tenaamstelling'], format='%Y%m%d')
+df90['Jaar'] = df90['datum_tenaamstelling'].dt.year
+df90['Maand'] = df90['datum_tenaamstelling'].dt.month
+
+# Voeg een dropdown-menu toe om het jaar te selecteren
+geselecteerd_jaar = st.selectbox('Selecteer een jaar:', df90['Jaar'].unique())
+
+# Filter de gegevens op basis van het geselecteerde jaar
+gefilterde_df = df90[df90['Jaar'] == geselecteerd_jaar]
+
+# Maak een lineplot
+plt.figure(figsize=(12, 6))
+sns.countplot(data=gefilterde_df, x='Maand', hue='brandstof_omschrijving')
+plt.title(f'Lineplot van soorten autos voor het jaar {geselecteerd_jaar}')
+plt.xlabel('Maand')
+plt.ylabel('Aantal autos')
+plt.xticks(rotation=45)
+plt.legend(title='Brandstof omschrijving')
+plt.show()
